@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock Paper Scissors</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Main Menu Screen -->
+    <div id="menu-screen" class="screen active">
+      <h1>Rock Paper Scissors</h1>
+      <div class="mode-selector">
+        <button id="ai-mode-btn" class="mode-btn active">Play vs AI</button>
+        <button id="human-mode-btn" class="mode-btn">Play vs Human</button>
+      </div>
+      <button id="play-btn" class="primary-btn">Play Game</button>
+    </div>
+
+    <!-- Waiting Screen (for multiplayer) -->
+    <div id="waiting-screen" class="screen">
+      <h2>Waiting for opponent...</h2>
+      <div class="spinner"></div>
+      <button id="cancel-wait-btn" class="secondary-btn">Cancel</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="game-header">
+        <h2 id="game-status">Choose your move</h2>
+        <div id="opponent-status" class="opponent-status">Opponent is choosing...</div>
+      </div>
+      <div class="choices">
+        <button class="choice-btn" data-choice="rock">
+          <i class="fas fa-hand-rock"></i>
+          <span>Rock</span>
+        </button>
+        <button class="choice-btn" data-choice="paper">
+          <i class="fas fa-hand-paper"></i>
+          <span>Paper</span>
+        </button>
+        <button class="choice-btn" data-choice="scissors">
+          <i class="fas fa-hand-scissors"></i>
+          <span>Scissors</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="screen">
+      <h2 id="result-text">You Win!</h2>
+      <div class="result-details">
+        <div class="player-choice">
+          <h3>You chose</h3>
+          <div id="player-choice-icon" class="choice-icon">
+            <i class="fas fa-hand-rock"></i>
+          </div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="opponent-choice">
+          <h3>Opponent chose</h3>
+          <div id="opponent-choice-icon" class="choice-icon">
+            <i class="fas fa-hand-paper"></i>
+          </div>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button id="play-again-btn" class="primary-btn">Play Again</button>
+        <button id="menu-btn" class="secondary-btn">Menu</button>
+      </div>
+      <div id="rematch-timer" class="timer">Returning to menu in <span id="timer-count">10</span></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

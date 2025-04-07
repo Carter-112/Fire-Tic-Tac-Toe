@@ -1,0 +1,245 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f2f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Screen styles */
+.screen {
+  display: none;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #2c3e50;
+}
+
+h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* Button styles */
+.primary-btn, .secondary-btn, .mode-btn, .choice-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-btn {
+  background-color: #3498db;
+  color: white;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.primary-btn:hover {
+  background-color: #2980b9;
+}
+
+.secondary-btn {
+  background-color: #e74c3c;
+  color: white;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.secondary-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Mode selector */
+.mode-selector {
+  display: flex;
+  width: 100%;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 15px;
+  background-color: #f8f9fa;
+  color: #555;
+  border-radius: 0;
+  border: none;
+}
+
+.mode-btn.active {
+  background-color: #3498db;
+  color: white;
+}
+
+/* Game screen */
+.game-header {
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.opponent-status {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-top: 5px;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background-color: #f8f9fa;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.choice-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.choice-btn i {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* Result screen */
+.result-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 20px 0 30px;
+}
+
+.player-choice, .opponent-choice {
+  text-align: center;
+}
+
+.vs {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #7f8c8d;
+}
+
+.choice-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: 50%;
+  margin: 10px auto;
+}
+
+.choice-icon i {
+  font-size: 2.5rem;
+  color: #2c3e50;
+}
+
+.result-actions {
+  width: 100%;
+}
+
+.timer {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+/* Waiting screen */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .screen {
+    padding: 20px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  .choice-btn {
+    width: 90px;
+    height: 90px;
+  }
+  
+  .choice-icon {
+    width: 60px;
+    height: 60px;
+  }
+}
