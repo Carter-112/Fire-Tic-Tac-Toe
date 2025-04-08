@@ -1,0 +1,17 @@
+{
+  "name": "rock-paper-scissors-socket-server",
+  "version": "1.0.0",
+  "description": "Socket.io server for Rock Paper Scissors multiplayer game",
+  "main": "socket-server.js",
+  "scripts": {
+    "start": "node socket-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

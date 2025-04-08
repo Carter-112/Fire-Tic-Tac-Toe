@@ -3,96 +3,153 @@ function debug(message) {
   console.log(`[DEBUG] ${message}`);
 }
 
-// Connect to Socket.io server
 // Determine if we're in development or production
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// For local development, connect to the local server
-// For production on Netlify, use the socket function
-let socketUrl;
-let socketOptions = {};
+// Socket.io server URL - use local server for development, external server for production
+// IMPORTANT: Replace this URL with your actual deployed Socket.io server URL
+const SOCKET_SERVER_URL = isLocalhost ? '/' : 'https://fire-tic-tac-toe.onrender.com';
 
-if (isLocalhost) {
-  socketUrl = '/';
-} else {
-  // For Netlify deployment
-  socketUrl = '/.netlify/functions/socket';
-  socketOptions = {
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000
-  };
+let socket;
+let socketAvailable = false;
+
+// Try to initialize Socket.io
+try {
+  if (typeof io !== 'undefined') {
+    // Socket.io is available
+    debug('Socket.io is available');
+
+    let socketOptions = {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000
+    };
+
+    debug(`Connecting to socket server: ${SOCKET_SERVER_URL}`);
+    socket = io(SOCKET_SERVER_URL, socketOptions);
+
+    // Log connection status
+    socket.on('connect', () => {
+      debug('Connected to socket server');
+      socketAvailable = true;
+
+      // If we're already on the menu screen, enable multiplayer
+      document.addEventListener('DOMContentLoaded', () => {
+        enableMultiplayer();
+      });
+    });
+
+    socket.on('connect_error', (error) => {
+      debug(`Connection error: ${error.message}`);
+      handleSocketUnavailable();
+    });
+  } else {
+    debug('Socket.io is not available');
+    handleSocketUnavailable();
+  }
+} catch (error) {
+  debug(`Error initializing Socket.io: ${error.message}`);
+  handleSocketUnavailable();
 }
 
-debug(`Using socket URL: ${socketUrl}`);
-const socket = io(socketUrl, socketOptions);
+// Function to enable multiplayer when socket is connected
+function enableMultiplayer() {
+  debug('Enabling multiplayer mode');
+  socketAvailable = true;
 
-// Log connection status
-socket.on('connect', () => {
-  debug('Connected to server');
-});
+  // Remove any existing notification
+  const notification = document.getElementById('connection-notification');
+  if (notification) {
+    notification.remove();
+  }
 
-socket.on('connect_error', (error) => {
-  debug(`Connection error: ${error.message}`);
-  // Allow AI mode to work even without server connection
-  debug('Socket.io connection error - AI gameplay will still work');
+  // Enable the human mode button
+  const humanModeBtn = document.getElementById('human-mode-btn');
+  if (humanModeBtn) {
+    humanModeBtn.disabled = false;
+    humanModeBtn.style.opacity = '1';
+    humanModeBtn.style.cursor = 'pointer';
+    humanModeBtn.title = 'Play against another human player';
+  }
+}
 
-  // If we're in production and can't connect, show a message to the user
-  if (!isLocalhost) {
+// Function to handle when Socket.io is not available
+function handleSocketUnavailable() {
+  debug('Socket.io unavailable - Disabling multiplayer');
+  socketAvailable = false;
+
+  // Create a mock socket object with empty event handlers if socket is undefined
+  if (!socket) {
+    socket = {
+      on: (event, callback) => {},
+      emit: (event, data) => {
+        debug(`Mock socket emit: ${event}`);
+        return false;
+      },
+      connected: false
+    };
+  }
+
+  // Wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', () => {
     // Add a notification to the menu screen
     const menuScreen = document.getElementById('menu-screen');
-    let notification = document.getElementById('connection-notification');
+    if (menuScreen) {
+      let notification = document.getElementById('connection-notification');
 
-    if (!notification) {
-      notification = document.createElement('div');
-      notification.id = 'connection-notification';
-      notification.className = 'notification';
-      notification.innerHTML = `
-        <p>Multiplayer mode may not be available right now.</p>
-        <p>You can still play against the AI!</p>
-      `;
-      menuScreen.appendChild(notification);
+      if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'connection-notification';
+        notification.className = 'notification';
+        notification.innerHTML = `
+          <p>Multiplayer server is currently unavailable.</p>
+          <p>You can still play against the AI!</p>
+        `;
+        menuScreen.appendChild(notification);
 
-      // Add notification styles
-      const style = document.createElement('style');
-      style.textContent = `
-        .notification {
-          background: rgba(0, 0, 0, 0.7);
-          border: 1px solid rgba(255, 87, 34, 0.5);
-          border-radius: 8px;
-          padding: 10px 15px;
-          margin-top: 15px;
-          color: #fff;
-          font-size: 0.9rem;
-          text-align: center;
-          animation: pulse 2s infinite;
+        // Add notification styles
+        const style = document.createElement('style');
+        style.textContent = `
+          .notification {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 87, 34, 0.5);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 15px;
+            color: #fff;
+            font-size: 0.9rem;
+            text-align: center;
+            animation: pulse 2s infinite;
+          }
+
+          @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Disable the human mode button
+      const humanModeBtn = document.getElementById('human-mode-btn');
+      if (humanModeBtn) {
+        humanModeBtn.disabled = true;
+        humanModeBtn.style.opacity = '0.5';
+        humanModeBtn.style.cursor = 'not-allowed';
+        humanModeBtn.title = 'Multiplayer mode is currently unavailable';
+
+        // Force AI mode
+        const aiModeBtn = document.getElementById('ai-mode-btn');
+        if (aiModeBtn) {
+          aiModeBtn.click();
         }
-
-        @keyframes pulse {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 1; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Disable the human mode button
-    const humanModeBtn = document.getElementById('human-mode-btn');
-    if (humanModeBtn) {
-      humanModeBtn.disabled = true;
-      humanModeBtn.style.opacity = '0.5';
-      humanModeBtn.style.cursor = 'not-allowed';
-
-      // Force AI mode
-      const aiModeBtn = document.getElementById('ai-mode-btn');
-      if (aiModeBtn) {
-        aiModeBtn.click();
       }
     }
-  }
-});
+  });
+}
 
 // Game state
 let gameMode = 'ai'; // Default mode is AI
@@ -242,6 +299,12 @@ function initEventListeners() {
   });
 
   elements.humanModeBtn.addEventListener('click', () => {
+    // Only allow human mode if Socket.io is available
+    if (!socketAvailable) {
+      debug('Human mode selected but Socket.io is not available');
+      return; // Don't allow selection if socket is not available
+    }
+
     debug('Human mode selected');
     gameMode = 'human';
     elements.humanModeBtn.classList.add('active');
@@ -256,9 +319,19 @@ function initEventListeners() {
       showScreen('game');
       elements.gameStatus.textContent = 'Choose your move';
       elements.opponentStatus.style.display = 'none';
-    } else {
+    } else if (socketAvailable) {
+      // Only try to use socket if it's available
       socket.emit('selectMode', 'human');
       showScreen('waiting');
+    } else {
+      // Fallback to AI mode if socket is not available
+      debug('Falling back to AI mode because Socket.io is not available');
+      gameMode = 'ai';
+      elements.aiModeBtn.classList.add('active');
+      elements.humanModeBtn.classList.remove('active');
+      showScreen('game');
+      elements.gameStatus.textContent = 'Choose your move';
+      elements.opponentStatus.style.display = 'none';
     }
   });
 

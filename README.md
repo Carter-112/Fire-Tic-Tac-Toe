@@ -54,31 +54,50 @@ A fully functional rock-paper-scissors game that works on both mobile and PC. Th
 3. Click "New site from Git" on the Netlify dashboard
 4. Select your GitHub repository
 5. Configure the build settings:
-   - Build command: `npm install && npm run build`
+   - Build command: `npm install`
    - Publish directory: `public`
-   - Functions directory: `netlify/functions`
 6. Click "Deploy site"
 
-### Important Netlify Settings
+### Setting Up Multiplayer Functionality
 
-After deploying, you need to configure a few additional settings:
+To enable multiplayer functionality when deployed to Netlify, you need to deploy the Socket.io server separately. This is because Netlify doesn't support persistent WebSocket connections needed for real-time multiplayer.
 
-1. **Enable Functions**: Go to Site settings > Functions > Settings and ensure the functions directory is set to `netlify/functions`
+#### Deploying the Socket.io Server
 
-2. **Check Redirects**: Go to Site settings > Domain management > Redirects and ensure the redirects from the `_redirects` file are properly configured
+1. **Create an account on a platform that supports WebSockets**:
+   - [Render](https://render.com/) (recommended, has a free tier)
+   - [Glitch](https://glitch.com/)
+   - [Railway](https://railway.app/)
+   - [Heroku](https://www.heroku.com/) (requires credit card for free tier)
 
-3. **Environment Variables**: If needed, set environment variables in Site settings > Build & deploy > Environment
+2. **Deploy the Socket.io server**:
+   - Create a new Web Service
+   - Connect your GitHub repository or upload the `socket-server.js` file
+   - Set the build command: `npm install`
+   - Set the start command: `node socket-server.js`
+   - Deploy the server
 
-### Troubleshooting Deployment
+3. **Update the client code**:
+   - After deploying, you'll get a URL for your Socket.io server
+   - Open `public/script.js` and update the `SOCKET_SERVER_URL` variable with your server URL
+   - Redeploy your Netlify site
 
-If multiplayer functionality doesn't work after deployment:
+When properly configured:
+- The game will automatically connect to your Socket.io server
+- The "Play vs Human" option will be enabled
+- Players can play against each other in real-time
 
-1. Check the Netlify Function logs in the Netlify dashboard
-2. Ensure your site has the proper permissions for Functions
-3. The game will automatically fall back to AI-only mode if the Socket.io connection fails
-4. Try clearing your browser cache or using incognito mode
+### Local Development with Multiplayer
 
-Netlify will automatically deploy your site and provide you with a URL. The multiplayer functionality will work through Netlify Functions.
+To test the multiplayer functionality locally:
+
+```
+npm run local
+```
+
+This will start a local server with full Socket.io support, allowing you to test the multiplayer functionality.
+
+Netlify will automatically deploy your site and provide you with a URL.
 
 ## Game Rules
 
