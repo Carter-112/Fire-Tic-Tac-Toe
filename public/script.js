@@ -6,10 +6,28 @@ function debug(message) {
 // Connect to Socket.io server
 // Determine if we're in development or production
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const socketUrl = isLocalhost ? '/' : '/.netlify/functions/server';
+
+// For local development, connect to the local server
+// For production on Netlify, use the socket function
+let socketUrl;
+let socketOptions = {};
+
+if (isLocalhost) {
+  socketUrl = '/';
+} else {
+  // For Netlify deployment
+  socketUrl = '/.netlify/functions/socket';
+  socketOptions = {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000
+  };
+}
 
 debug(`Using socket URL: ${socketUrl}`);
-const socket = io(socketUrl);
+const socket = io(socketUrl, socketOptions);
 
 // Log connection status
 socket.on('connect', () => {
@@ -18,9 +36,61 @@ socket.on('connect', () => {
 
 socket.on('connect_error', (error) => {
   debug(`Connection error: ${error.message}`);
-  // For development, allow AI mode to work even without server connection
-  if (isLocalhost) {
-    debug('Running in local mode - AI gameplay will still work');
+  // Allow AI mode to work even without server connection
+  debug('Socket.io connection error - AI gameplay will still work');
+
+  // If we're in production and can't connect, show a message to the user
+  if (!isLocalhost) {
+    // Add a notification to the menu screen
+    const menuScreen = document.getElementById('menu-screen');
+    let notification = document.getElementById('connection-notification');
+
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'connection-notification';
+      notification.className = 'notification';
+      notification.innerHTML = `
+        <p>Multiplayer mode may not be available right now.</p>
+        <p>You can still play against the AI!</p>
+      `;
+      menuScreen.appendChild(notification);
+
+      // Add notification styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .notification {
+          background: rgba(0, 0, 0, 0.7);
+          border: 1px solid rgba(255, 87, 34, 0.5);
+          border-radius: 8px;
+          padding: 10px 15px;
+          margin-top: 15px;
+          color: #fff;
+          font-size: 0.9rem;
+          text-align: center;
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Disable the human mode button
+    const humanModeBtn = document.getElementById('human-mode-btn');
+    if (humanModeBtn) {
+      humanModeBtn.disabled = true;
+      humanModeBtn.style.opacity = '0.5';
+      humanModeBtn.style.cursor = 'not-allowed';
+
+      // Force AI mode
+      const aiModeBtn = document.getElementById('ai-mode-btn');
+      if (aiModeBtn) {
+        aiModeBtn.click();
+      }
+    }
   }
 });
 

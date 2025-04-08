@@ -54,9 +54,29 @@ A fully functional rock-paper-scissors game that works on both mobile and PC. Th
 3. Click "New site from Git" on the Netlify dashboard
 4. Select your GitHub repository
 5. Configure the build settings:
-   - Build command: `npm install`
+   - Build command: `npm install && npm run build`
    - Publish directory: `public`
+   - Functions directory: `netlify/functions`
 6. Click "Deploy site"
+
+### Important Netlify Settings
+
+After deploying, you need to configure a few additional settings:
+
+1. **Enable Functions**: Go to Site settings > Functions > Settings and ensure the functions directory is set to `netlify/functions`
+
+2. **Check Redirects**: Go to Site settings > Domain management > Redirects and ensure the redirects from the `_redirects` file are properly configured
+
+3. **Environment Variables**: If needed, set environment variables in Site settings > Build & deploy > Environment
+
+### Troubleshooting Deployment
+
+If multiplayer functionality doesn't work after deployment:
+
+1. Check the Netlify Function logs in the Netlify dashboard
+2. Ensure your site has the proper permissions for Functions
+3. The game will automatically fall back to AI-only mode if the Socket.io connection fails
+4. Try clearing your browser cache or using incognito mode
 
 Netlify will automatically deploy your site and provide you with a URL. The multiplayer functionality will work through Netlify Functions.
 

@@ -1,0 +1,10 @@
+# Netlify redirects file
+
+# Redirect API requests to Netlify Functions
+/api/*  /.netlify/functions/:splat  200
+
+# Socket.io endpoint
+/socket.io/*  /.netlify/functions/socket  200
+
+# Handle client-side routing
+/*  /index.html  200
