@@ -28,7 +28,12 @@ A fully functional rock-paper-scissors game that works on both mobile and PC. Th
    npm install
    ```
 
-2. Start the server:
+2. For local development (recommended):
+   ```
+   npm run local
+   ```
+
+   Or for Netlify Functions development:
    ```
    npm start
    ```
@@ -37,6 +42,8 @@ A fully functional rock-paper-scissors game that works on both mobile and PC. Th
    ```
    http://localhost:3000
    ```
+
+   The local development server provides better debugging and doesn't require Netlify Functions setup.
 
 ## Deployment
 

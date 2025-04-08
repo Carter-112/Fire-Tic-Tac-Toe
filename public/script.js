@@ -1,34 +1,68 @@
+// Debug function to help troubleshoot
+function debug(message) {
+  console.log(`[DEBUG] ${message}`);
+}
+
 // Connect to Socket.io server
-const socket = io('/.netlify/functions/server');
+// Determine if we're in development or production
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const socketUrl = isLocalhost ? '/' : '/.netlify/functions/server';
+
+debug(`Using socket URL: ${socketUrl}`);
+const socket = io(socketUrl);
+
+// Log connection status
+socket.on('connect', () => {
+  debug('Connected to server');
+});
+
+socket.on('connect_error', (error) => {
+  debug(`Connection error: ${error.message}`);
+  // For development, allow AI mode to work even without server connection
+  if (isLocalhost) {
+    debug('Running in local mode - AI gameplay will still work');
+  }
+});
 
 // Game state
 let gameMode = 'ai'; // Default mode is AI
 let timerInterval = null;
 
-// DOM Elements
-const screens = {
-  menu: document.getElementById('menu-screen'),
-  waiting: document.getElementById('waiting-screen'),
-  game: document.getElementById('game-screen'),
-  result: document.getElementById('result-screen')
-};
+// Initialize DOM elements after document is fully loaded
+let screens = {};
+let elements = {};
 
-const elements = {
-  aiModeBtn: document.getElementById('ai-mode-btn'),
-  humanModeBtn: document.getElementById('human-mode-btn'),
-  playBtn: document.getElementById('play-btn'),
-  cancelWaitBtn: document.getElementById('cancel-wait-btn'),
-  choiceBtns: document.querySelectorAll('.choice-btn'),
-  gameStatus: document.getElementById('game-status'),
-  opponentStatus: document.getElementById('opponent-status'),
-  resultText: document.getElementById('result-text'),
-  playerChoiceIcon: document.getElementById('player-choice-icon'),
-  opponentChoiceIcon: document.getElementById('opponent-choice-icon'),
-  playAgainBtn: document.getElementById('play-again-btn'),
-  menuBtn: document.getElementById('menu-btn'),
-  rematchTimer: document.getElementById('rematch-timer'),
-  timerCount: document.getElementById('timer-count')
-};
+document.addEventListener('DOMContentLoaded', () => {
+  debug('Document loaded, initializing elements');
+
+  // DOM Elements
+  screens = {
+    menu: document.getElementById('menu-screen'),
+    waiting: document.getElementById('waiting-screen'),
+    game: document.getElementById('game-screen'),
+    result: document.getElementById('result-screen')
+  };
+
+  elements = {
+    aiModeBtn: document.getElementById('ai-mode-btn'),
+    humanModeBtn: document.getElementById('human-mode-btn'),
+    playBtn: document.getElementById('play-btn'),
+    cancelWaitBtn: document.getElementById('cancel-wait-btn'),
+    choiceBtns: document.querySelectorAll('.choice-btn'),
+    gameStatus: document.getElementById('game-status'),
+    opponentStatus: document.getElementById('opponent-status'),
+    resultText: document.getElementById('result-text'),
+    playerChoiceIcon: document.getElementById('player-choice-icon'),
+    opponentChoiceIcon: document.getElementById('opponent-choice-icon'),
+    playAgainBtn: document.getElementById('play-again-btn'),
+    menuBtn: document.getElementById('menu-btn'),
+    rematchTimer: document.getElementById('rematch-timer'),
+    timerCount: document.getElementById('timer-count')
+  };
+
+  // Initialize event listeners
+  initEventListeners();
+});
 
 // Helper functions
 function showScreen(screenId) {
@@ -125,76 +159,86 @@ function showResult(playerChoice, opponentChoice, result) {
   }
 }
 
-// Event Listeners
-// Mode selection
-elements.aiModeBtn.addEventListener('click', () => {
-  gameMode = 'ai';
-  elements.aiModeBtn.classList.add('active');
-  elements.humanModeBtn.classList.remove('active');
-});
+// Initialize all event listeners
+function initEventListeners() {
+  debug('Initializing event listeners');
 
-elements.humanModeBtn.addEventListener('click', () => {
-  gameMode = 'human';
-  elements.humanModeBtn.classList.add('active');
-  elements.aiModeBtn.classList.remove('active');
-});
+  // Mode selection
+  elements.aiModeBtn.addEventListener('click', () => {
+    debug('AI mode selected');
+    gameMode = 'ai';
+    elements.aiModeBtn.classList.add('active');
+    elements.humanModeBtn.classList.remove('active');
+  });
 
-// Play button
-elements.playBtn.addEventListener('click', () => {
-  if (gameMode === 'ai') {
-    showScreen('game');
-    elements.gameStatus.textContent = 'Choose your move';
-    elements.opponentStatus.style.display = 'none';
-  } else {
-    socket.emit('selectMode', 'human');
-    showScreen('waiting');
-  }
-});
+  elements.humanModeBtn.addEventListener('click', () => {
+    debug('Human mode selected');
+    gameMode = 'human';
+    elements.humanModeBtn.classList.add('active');
+    elements.aiModeBtn.classList.remove('active');
+  });
 
-// Cancel wait button
-elements.cancelWaitBtn.addEventListener('click', () => {
-  socket.emit('returnToMenu');
-  showScreen('menu');
-});
-
-// Choice buttons
-elements.choiceBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const choice = btn.dataset.choice;
+  // Play button
+  elements.playBtn.addEventListener('click', () => {
+    debug(`Play button clicked. Current game mode: ${gameMode}`);
 
     if (gameMode === 'ai') {
-      playAgainstAI(choice);
+      showScreen('game');
+      elements.gameStatus.textContent = 'Choose your move';
+      elements.opponentStatus.style.display = 'none';
     } else {
-      socket.emit('makeChoice', choice);
-      elements.gameStatus.textContent = 'You chose ' + choice.charAt(0).toUpperCase() + choice.slice(1);
-      elements.opponentStatus.textContent = 'Waiting for opponent...';
+      socket.emit('selectMode', 'human');
+      showScreen('waiting');
     }
   });
-});
 
-// Play again button
-elements.playAgainBtn.addEventListener('click', () => {
-  stopTimer();
-
-  if (gameMode === 'ai') {
-    showScreen('game');
-    elements.gameStatus.textContent = 'Choose your move';
-  } else {
-    socket.emit('rematchVote', true);
-    showScreen('waiting');
-  }
-});
-
-// Menu button
-elements.menuBtn.addEventListener('click', () => {
-  stopTimer();
-
-  if (gameMode === 'human') {
+  // Cancel wait button
+  elements.cancelWaitBtn.addEventListener('click', () => {
     socket.emit('returnToMenu');
-  }
+    showScreen('menu');
+  });
 
-  showScreen('menu');
-});
+  // Choice buttons
+  elements.choiceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const choice = btn.dataset.choice;
+
+      if (gameMode === 'ai') {
+        playAgainstAI(choice);
+      } else {
+        socket.emit('makeChoice', choice);
+        elements.gameStatus.textContent = 'You chose ' + choice.charAt(0).toUpperCase() + choice.slice(1);
+        elements.opponentStatus.textContent = 'Waiting for opponent...';
+      }
+    });
+  });
+
+  // Play again button
+  elements.playAgainBtn.addEventListener('click', () => {
+    stopTimer();
+
+    if (gameMode === 'ai') {
+      showScreen('game');
+      elements.gameStatus.textContent = 'Choose your move';
+    } else {
+      socket.emit('rematchVote', true);
+      showScreen('waiting');
+    }
+  });
+
+  // Menu button
+  elements.menuBtn.addEventListener('click', () => {
+    stopTimer();
+
+    if (gameMode === 'human') {
+      socket.emit('returnToMenu');
+    }
+
+    showScreen('menu');
+  });
+
+  debug('All event listeners initialized');
+}
 
 // Socket.io event handlers
 socket.on('waiting', () => {
